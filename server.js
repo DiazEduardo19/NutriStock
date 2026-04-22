@@ -34,8 +34,8 @@ function verificarSesion(req, res, next) {
     if (req.session.usuarioId) {
         next();
     } else {
-        // Si es una petición API y no hay sesión, mandamos un error 401
-        if (req.path.startsWith('/suplementos')) {
+        // Si es una petición de API devolvemos error, si es página redirigimos
+        if (req.path.startsWith('/suplementos') || req.path.startsWith('/api-ventas')) {
             return res.status(401).json({ error: 'No autorizado' });
         }
         res.redirect('/login');
@@ -54,7 +54,7 @@ app.post('/login', (req, res) => {
         if (err) throw err;
         if (results.length > 0) {
             req.session.usuarioId = results[0].id;
-            res.redirect('/');
+            res.redirect('/menu'); 
         } else {
             res.send('Usuario o contraseña incorrectos. <a href="/login">Volver</a>');
         }
@@ -62,24 +62,21 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-    req.session.destroy((err) => {
-        if (err) {
-            console.log("Error al cerrar sesión:", err);
-            return res.redirect('/');
-        }
-        // Limpiamos la cookie del navegador (opcional pero recomendado)
+    req.session.destroy(() => {
         res.clearCookie('connect.sid'); 
         res.redirect('/login');
     });
 });
 
-// --- RUTAS DEL SISTEMA (CRUD Protegidas) ---
+// --- RUTAS DE NAVEGACIÓN (HTML) ---
+app.get('/', verificarSesion, (req, res) => res.redirect('/menu'));
+app.get('/menu', verificarSesion, (req, res) => res.sendFile(path.join(__dirname, 'menu.html')));
+app.get('/inventario', verificarSesion, (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
+app.get('/ventas', verificarSesion, (req, res) => res.sendFile(path.join(__dirname, 'ventas.html')));
 
-app.get('/', verificarSesion, (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// --- RUTAS DE LA API (INVENTARIO) ---
 
-// 1. LEER (Read)
+// 1. OBTENER PRODUCTOS
 app.get('/suplementos', verificarSesion, (req, res) => {
     db.query('SELECT * FROM suplementos', (err, results) => {
         if (err) return res.status(500).send(err);
@@ -87,18 +84,17 @@ app.get('/suplementos', verificarSesion, (req, res) => {
     });
 });
 
-// 2. CREAR (Create)
+// 2. AGREGAR PRODUCTO (Esta te faltaba)
 app.post('/suplementos', verificarSesion, (req, res) => {
     const { nombre, marca, precio, stock } = req.body;
     const query = 'INSERT INTO suplementos (nombre, marca, precio, stock) VALUES (?, ?, ?, ?)';
     db.query(query, [nombre, marca, precio, stock], (err, result) => {
         if (err) return res.status(500).send(err);
-        res.send('Agregado');
+        res.send('Producto agregado');
     });
 });
 
-
-// 3. ELIMINAR (Delete)
+// 3. ELIMINAR PRODUCTO
 app.delete('/suplementos/:id', verificarSesion, (req, res) => {
     const { id } = req.params;
     db.query('DELETE FROM suplementos WHERE id = ?', [id], (err, result) => {
@@ -107,7 +103,7 @@ app.delete('/suplementos/:id', verificarSesion, (req, res) => {
     });
 });
 
-// 4. ACTUALIZAR (Update)
+// 4. ACTUALIZAR PRODUCTO
 app.put('/suplementos/:id', verificarSesion, (req, res) => {
     const { id } = req.params;
     const { nombre, marca, precio, stock } = req.body;
@@ -118,7 +114,51 @@ app.put('/suplementos/:id', verificarSesion, (req, res) => {
     });
 });
 
+// --- RUTAS DE LA API (VENTAS) ---
+
+// 1. OBTENER HISTORIAL DE VENTAS (Para llenar la tabla)
+app.get('/api-ventas', verificarSesion, (req, res) => {
+    const sql = `
+        SELECT v.*, s.nombre AS producto_nombre 
+        FROM ventas v 
+        JOIN suplementos s ON v.producto_id = s.id 
+        ORDER BY v.fecha DESC`;
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        res.json(results);
+    });
+});
+
+// 2. REGISTRAR VENTA CON VALIDACIÓN DE STOCK
+app.post('/api-ventas', verificarSesion, (req, res) => {
+    const { producto_id, cantidad, total, cliente } = req.body;
+
+    // Verificar si hay stock suficiente
+    db.query('SELECT nombre, stock FROM suplementos WHERE id = ?', [producto_id], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ error: "Producto no encontrado" });
+
+        const producto = results[0];
+        if (producto.stock < cantidad) {
+            return res.status(400).json({ error: `Stock insuficiente. Solo quedan ${producto.stock} unidades.` });
+        }
+
+        // Si hay stock, registrar la venta
+        const sqlVenta = 'INSERT INTO ventas (producto_id, cantidad, total, cliente) VALUES (?, ?, ?, ?)';
+        db.query(sqlVenta, [producto_id, cantidad, total, cliente], (err, result) => {
+            if (err) return res.status(500).json({ error: err.message });
+
+            // Descontar del inventario
+            const sqlStock = 'UPDATE suplementos SET stock = stock - ? WHERE id = ?';
+            db.query(sqlStock, [cantidad, producto_id], (err, updateResult) => {
+                if (err) return res.status(500).json({ error: err.message });
+                res.status(200).json({ message: 'Venta registrada con éxito' });
+            });
+        });
+    });
+});
+
 // --- INICIAR SERVIDOR ---
 app.listen(3000, () => {
-    console.log('🚀 Servidor en http://localhost:3000');
+    console.log('🚀 Servidor NutriStock en http://localhost:3000');
 });

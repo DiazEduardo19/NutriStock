@@ -6,24 +6,26 @@ const tabla = document.getElementById('tabla-suplementos');
 const cargarSuplementos = async () => {
     try {
         const respuesta = await fetch('/suplementos');
+        
         // Si el servidor nos dice que no estamos autorizados (porque expiró la sesión)
         if (respuesta.status === 401) {
             window.location.href = '/login';
             return;
         }
+        
         const suplementos = await respuesta.json();
         
         tabla.innerHTML = ''; 
         suplementos.forEach(sup => {
             tabla.innerHTML += `
                 <tr>
-                    <td>${sup.nombre}</td>
+                    <td><strong>${sup.nombre}</strong></td>
                     <td>${sup.marca}</td>
                     <td>$${sup.precio}</td>
-                    <td>${sup.stock}</td>
-                    <td>
-                        <button class="btn btn-warning btn-sm" onclick="editar(${sup.id})">Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="eliminar(${sup.id})">Eliminar</button>
+                    <td>${sup.stock} Unid.</td>
+                    <td class="text-center">
+                        <button class="btn btn-nutri btn-sm me-2" onclick="editar(${sup.id})">Editar</button>
+                        <button class="btn btn-danger-custom btn-sm" onclick="eliminar(${sup.id})">Eliminar</button>
                     </td>
                 </tr>
             `;
@@ -79,12 +81,12 @@ window.eliminar = async (id) => {
 
 // --- 4. FUNCIÓN PARA EDITAR (UPDATE) ---
 window.editar = async (id) => {
+    // Usamos prompts sencillos como tenías, pero podrías mejorar esto con un modal después
     const nuevoNombre = prompt("Nuevo nombre del suplemento:");
     const nuevaMarca = prompt("Nueva marca:");
     const nuevoPrecio = prompt("Nuevo precio:");
     const nuevoStock = prompt("Nuevo stock:");
 
-    // Solo procedemos si el usuario no dejó los campos vacíos importantes
     if (nuevoNombre && nuevaMarca && nuevoPrecio && nuevoStock) {
         const datos = {
             nombre: nuevoNombre,

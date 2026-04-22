@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NutriStock - Menú Principal</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Fondo */
+        .background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('fondo-login.png'); 
+            background-size: cover;
+            background-position: center;
+            z-index: -1;
+        }
+
+        /* Logo superpuesto */
+        .logo-superpuesto {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            z-index: 0;
+        }
+
+        .logo-superpuesto img {
+            width: 915px;
+            position: absolute;
+            top: -105px;
+            left: -165px;
+        }
+        
+        .menu-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            padding-right: 10%;
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-box {
+            width: 600px;
+            text-align: center;
+        }
+
+        .welcome-text {
+            font-size: 4rem;
+            font-weight: 300;
+            color: #000;
+            margin-bottom: 10px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Botones del menú */
+        .menu-item {
+            display: block;
+            text-decoration: none;
+            margin-bottom: 25px;
+            transition: transform 0.3s;
+        }
+
+        .menu-item:hover {
+            transform: scale(1.05);
+        }
+
+        .marco-menu {
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            display: flex;
+            justify-content: center;
+            background: linear-gradient(90deg, #2d45a0 0%, #3b59c4 100%);
+        }
+
+        .btn-pill {
+            width: 90%;
+            padding: 20px;
+            border-radius: 50px;
+            background: linear-gradient(to bottom, #62699c, #3b297e);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+            border: 1px solid #4a5446;
+        }
+
+        .btn-pill:hover {
+            filter: brightness(1.2);
+        }
+
+        .logout-link {
+            margin-top: 50px;
+            color: #a04545;
+            text-decoration: none;
+            font-weight: bold;
+            letter-spacing: 1px;
+            border-bottom: 2px solid transparent;
+            transition: 0.3s;
+        }
+
+        .logout-link:hover {
+            border-bottom: 2px solid #a04545;
+        }
+
+        /* --- Ajustes para móviles --- */
+        @media (max-width: 768px) {
+            .menu-container {
+                align-items: center;
+                padding-right: 0;
+            }
+
+            .content-box {
+                width: 95%;
+            }
+
+            .welcome-text {
+                font-size: 2rem;
+                letter-spacing: 2px;
+            }
+
+            .subtitle {
+                font-size: 1rem;
+                margin-bottom: 30px;
+            }
+
+            .btn-pill {
+                width: 100%;
+                font-size: 1.2rem;
+                padding: 15px;
+            }
+
+            .logo-superpuesto img {
+                width: 250px;
+                top: 0;
+                left: 0;
+                opacity: 0.2; /* se mantiene como marca de agua pero no estorba */
+            }
+
+            .logout-link {
+                margin-top: 30px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background"></div>
+
+    <!-- Logo superpuesto -->
+    <div class="logo-superpuesto">
+        <img src="Nutri-Stock.png" alt="Logo NutriStock">
+    </div>
+
+    <div class="menu-container">
+        <div class="content-box">
+            <h1 class="welcome-text">BIENVENIDO</h1>
+            <p class="subtitle">Panel de Control NutriStock</p>
+
+            <a href="index.html" class="menu-item">
+                <div class="marco-menu">
+                    <div class="btn-pill">Gestión de Inventario</div>
+                </div>
+            </a>
+
+            <a href="/ventas" class="menu-item">
+                <div class="marco-menu">
+                    <div class="btn-pill">Registro de Ventas</div>
+                </div>
+            </a>
+        </div>
+
+        <a href="/logout" class="logout-link">CERRAR SESIÓN SEGURO</a>
+    </div>
+
+</body>
+</html>
